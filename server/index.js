@@ -7,10 +7,14 @@ const app=express();
 require('dotenv').config();
 
 const fileUpload=require('express-fileupload');
-app.use(fileUpload());
+app.use(fileUpload({
+    useTempFiles : true,
+    tempFileDir : '/tmp/'
+}));
+
 app.use(express.json());
 
-const PORT=process.env.PORT || 4000;
+const PORT=process.env.PORT || 6000;
 
 app.use('/api/v1',fileUploadRoutes);
 
