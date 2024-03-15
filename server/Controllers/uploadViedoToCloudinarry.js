@@ -1,4 +1,3 @@
-
 const cloudinary = require("cloudinary").v2;
 const fileSchema=require('../Models/fileSchema');
 
@@ -10,16 +9,16 @@ cloudinary.config({
     api_secret:process.env.API_SECRET
 });
 
-// function to check , supported files
-function isSupported(SupportedFiles,fileType)
-{
-    return SupportedFiles.includes(fileType);
+function isSupported(supported,fileType){
+    return supported.includes(fileType);
 }
+
 
 // function to upload files to cloudinary
 async function uploadToCloudinary(file, folder) {
     try {
         const options = { folder };
+        options.resource_type="auto";
         return await cloudinary.uploader.upload(file.tempFilePath, options);
     } catch (error) {
         // Handle the error appropriately, such as logging or throwing a custom error
@@ -29,27 +28,34 @@ async function uploadToCloudinary(file, folder) {
 }
 
 
-
-exports.uploadToCloudinary=async(req,res)=>{
+exports.uploadViedoCloudinary=async(req,res)=>{
     try{
         const {name,email,tags}=req.body;
-        
-        const file=req.files.imageFile;
-        const SupportedFiles=["png","jpeg","jpg"];
-        const fileType=file.name.split('.')[1].toLowerCase();
+        const file=req.files.viedoFile;
 
-        //does given file is supported or not
-        if(!isSupported(SupportedFiles,fileType))
+        if(!file)
         {
             return res.status(404).json({
                 success:false,
-                message:"file type is not supported",
+                message:"File is not present"
+            })
+        }
+
+        //console.log(file);
+        const support=["mp4","mov"];
+        const fileType=file.name.split('.')[1].toLowerCase();
+
+        if(!isSupported(support,fileType))
+        {
+            return res.status(400).json({
+                success:false,
+                message:"Filetype is not supported"
             })
         }
 
         //uploading to cloudinary
         const response=await uploadToCloudinary(file,"imageCloud");
-
+    
         //uploading to database
         const resp=await fileSchema.create({
             name,
